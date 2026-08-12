@@ -1,0 +1,273 @@
+#include <iostream>
+#include <string>
+
+// =======================
+// Named constants
+// =======================
+const int MIN_UNITS      = 4;
+const int MAX_UNITS      = 8;
+const int MAX_CAT        = 30;
+const int MAX_PRACTICAL  = 20;
+const int MAX_EXAM       = 50;
+const int PASS_MARK      = 50;
+
+// =======================
+// Global variable for shadowing demo
+// =======================
+double adjustment = 2.5; // global exam moderation
+
+// =======================
+// Student record / class
+// =======================
+struct Student {
+    int    id;
+    std::string name;
+    int    unitsRegistered;
+
+    // Eligibility fields
+    double feeBalance;
+    bool   hasExamCard;
+    bool   hasDisciplinaryCase;
+
+    // Marks
+    double catMark;
+    double practicalMark;
+    double examMark;
+    double totalMark;
+
+    // Result fields
+    bool   isEligible;
+    bool   passed;
+    char   grade;
+};
+
+// =======================
+// Function declarations
+// =======================
+bool   checkEligibility(const Student &s, std::string &failureReason);
+double calculateTotal(const Student &s);
+char   determineGrade(double total);
+void   moderateMark(double &mark, double adjustment);
+void   demonstrateShadowing(Student &s);
+void   processStudent(Student &s);
+void   lifetimeExperiment();
+void   printReport(const Student students[], int n);
+
+// =======================
+// Eligibility, modularity, and scope
+// =======================
+bool checkEligibility(const Student &s, std::string &failureReason) {
+    // Block-local variable 'reason'
+    std::string reason;
+
+    bool unitsOk      = (s.unitsRegistered >= MIN_UNITS &&
+                         s.unitsRegistered <= MAX_UNITS);
+    bool feesOk       = (s.feeBalance == 0);
+    bool cardOk       = s.hasExamCard;
+    bool disciplineOk = !s.hasDisciplinaryCase;
+
+    if (unitsOk && feesOk && cardOk && disciplineOk) {
+        return true;
+    } else {
+        if (!unitsOk) {
+            reason = "Units not within 4–8";
+        } else if (!feesOk) {
+            reason = "Fee balance not cleared";
+        } else if (!cardOk) {
+            reason = "Exam card missing";
+        } else if (!disciplineOk) {
+            reason = "Disciplinary restriction";
+        }
+
+        // Correct use: copy block-local variable into parameter
+        failureReason = reason;
+
+        // Example (commented) of failed access outside block:
+        // std::cout << reason; // only valid inside this function
+        return false;
+    }
+}
+
+// =======================
+// Total and grade functions
+// =======================
+double calculateTotal(const Student &s) {
+    // l-value / r-value example:
+    // totalMark = catMark + practicalMark + examMark;
+    // Left-hand totalMark is l-value. On the right, catMark,
+    // practicalMark and examMark are used as r-values.
+    return s.catMark + s.practicalMark + s.examMark;
+}
+
+char determineGrade(double total) {
+    if      (total >= 70) return 'A';
+    else if (total >= 60) return 'B';
+    else if (total >= 50) return 'C';
+    else if (total >= 40) return 'D';
+    else                  return 'E';
+}
+
+// =======================
+// Aliasing function
+// =======================
+void moderateMark(double &mark, double adjustmentValue) {
+    // 'mark' is a reference parameter. It aliases the caller’s variable.
+    // Example: examMark = examMark + 5;
+    // Left-hand examMark is l-value (location), right-hand examMark is r-value (current value).
+    mark = mark + adjustmentValue;
+}
+
+// =======================
+// Shadowing global variable
+// =======================
+void demonstrateShadowing(Student &s) {
+    // Local variable shadows global 'adjustment'
+    double adjustment = 5.0; // local scope
+
+    // Inside this function, 'adjustment' refers to the local variable (5.0),
+    // not the global variable declared above (2.5).
+    s.examMark = s.examMark + adjustment; // uses local 5.0
+}
+
+// =======================
+// Processing with static counter and locals
+// =======================
+void processStudent(Student &s) {
+    static int studentCount = 0; // static lifetime
+    studentCount++;              // counts how many students processed
+
+    double tempTotal = calculateTotal(s); // local automatic variable
+    s.totalMark = tempTotal;
+    s.grade     = determineGrade(s.totalMark);
+    s.passed    = (s.totalMark >= PASS_MARK);
+
+    // Optionally apply global moderation
+    // moderateMark(s.examMark, adjustment);
+}
+
+// =======================
+// Lifetime and storage experiment
+// =======================
+void lifetimeExperiment() {
+    // Dynamically allocated Student object
+    Student *heapStudent = new Student;
+
+    heapStudent->id               = 999;
+    heapStudent->name             = "Dynamic Student";
+    heapStudent->unitsRegistered  = 4;
+    heapStudent->feeBalance       = 0;
+    heapStudent->hasExamCard      = true;
+    heapStudent->hasDisciplinaryCase = false;
+    heapStudent->catMark          = 25;
+    heapStudent->practicalMark    = 15;
+    heapStudent->examMark         = 45;
+
+    std::string reason;
+    heapStudent->isEligible = checkEligibility(*heapStudent, reason);
+
+    if (heapStudent->isEligible) {
+        processStudent(*heapStudent);
+    }
+
+    // At this point, heapStudent's data exists in dynamic storage.
+    // Lifetime begins at 'new Student' and ends at 'delete heapStudent'.
+    delete heapStudent; // release dynamically allocated storage
+    heapStudent = nullptr;
+}
+
+// =======================
+// Output and summaries
+// =======================
+void printReport(const Student students[], int n) {
+    std::cout << "\nSTUDENT REPORTS\n";
+    std::cout << "ID\tName\tUnits\tEligible\tPass\tTotal\tGrade\n";
+
+    double sumTotal = 0;
+    double highest  = -1;
+    double lowest   = 101;
+    int eligibleCount = 0;
+    int passCount     = 0;
+
+    for (int i = 0; i < n; ++i) {
+        const Student &s = students[i];
+
+        std::cout << s.id << "\t"
+                  << s.name << "\t"
+                  << s.unitsRegistered << "\t"
+                  << (s.isEligible ? "Yes" : "No") << "\t"
+                  << (s.passed ? "Pass" : "Fail") << "\t"
+                  << s.totalMark << "\t"
+                  << s.grade << "\n";
+
+        sumTotal += s.totalMark;
+        if (s.totalMark > highest) highest = s.totalMark;
+        if (s.totalMark < lowest)  lowest  = s.totalMark;
+        if (s.isEligible)          eligibleCount++;
+        if (s.passed)              passCount++;
+    }
+
+    double average = sumTotal / n;
+
+    std::cout << "\nSUMMARY\n";
+    std::cout << "Eligible students: " << eligibleCount << "\n";
+    std::cout << "Passed students:   " << passCount << "\n";
+    std::cout << "Highest total:     " << highest << "\n";
+    std::cout << "Lowest total:      " << lowest << "\n";
+    std::cout << "Average total:     " << average << "\n";
+}
+
+// =======================
+// Main function
+// =======================
+int main() {
+    const int N = 5; // minimum dataset: at least 5 students
+    Student students[N];
+
+    std::cout << "UNIVERSITY EXAMINATION ELIGIBILITY AND RESULT SYSTEM\n\n";
+
+    // Input: In a real submission you can read from std::cin.
+    // Here we hard-code 5 students for demonstration and testing.
+    for (int i = 0; i < N; ++i) {
+        students[i].id              = i + 1;
+        students[i].name            = "Student" + std::to_string(i + 1);
+        students[i].unitsRegistered = (i % 5) + 3; // some will be invalid
+
+        students[i].feeBalance          = (i == 0 ? 0 : 100); // first has cleared fees
+        students[i].hasExamCard         = (i != 2);           // third lacks card
+        students[i].hasDisciplinaryCase = (i == 3);           // fourth has case
+
+        students[i].catMark        = 20 + i;   // some different marks
+        students[i].practicalMark  = 15;
+        students[i].examMark       = 40 + i;
+    }
+
+    // Demonstrate dynamic allocation and static lifetime
+    lifetimeExperiment();
+
+    // Process each student
+    for (int i = 0; i < N; ++i) {
+        std::string reason;
+        students[i].isEligible = checkEligibility(students[i], reason);
+
+        if (students[i].isEligible) {
+            // Show shadowing and moderation on one student
+            if (i == 0) {
+                demonstrateShadowing(students[i]);
+            }
+            moderateMark(students[i].examMark, 3.0); // aliasing demo
+            processStudent(students[i]);
+        } else {
+            students[i].totalMark = calculateTotal(students[i]);
+            students[i].grade     = determineGrade(students[i].totalMark);
+            students[i].passed    = (students[i].totalMark >= PASS_MARK);
+            std::cout << "Student " << students[i].id
+                      << " ineligible: " << reason << "\n";
+        }
+    }
+
+    // Print reports and summaries
+    printReport(students, N);
+
+    // Conceptual questions: answers go in report, not output.
+    return 0;
+}
