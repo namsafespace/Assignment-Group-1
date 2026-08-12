@@ -1,0 +1,24 @@
+Output after running
+
+UNIVERSITY EXAMINATION ELIGIBILITY AND RESULT SYSTEM
+
+Student 1 ineligible: Units not within 4–8
+Student 2 ineligible: Fee balance not cleared
+Student 3 ineligible: Fee balance not cleared
+Student 4 ineligible: Fee balance not cleared
+Student 5 ineligible: Fee balance not cleared
+
+STUDENT REPORTS
+ID	Name	Units	Eligible	Pass	Total	Grade
+1	Student1	3	No	Pass	75	A
+2	Student2	4	No	Pass	77	A
+3	Student3	5	No	Pass	79	A
+4	Student4	6	No	Pass	81	A
+5	Student5	7	No	Pass	83	A
+
+SUMMARY
+Eligible students: 0
+Passed students:   5
+Highest total:     83
+Lowest total:      75
+Average total:     79
