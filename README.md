@@ -15,7 +15,6 @@ totalMark = catMark + practicalMark + examMark;
 illustrates l‑value and r‑value usage. totalMark on the left of = is an l‑value that denotes the memory location where the sum is stored. On the right, catMark, practicalMark, and examMark are used as r‑values: their current contents are read and combined.
 
 The function moderateMark(double &mark, double adjustmentValue) demonstrates aliasing. The reference parameter mark refers directly to the caller’s variable, such as students[i].examMark. Therefore, changes made through mark also modify the original variable.
-The statement examMark = examMark + 5; shows examMark in two roles: on the left as an l‑value (target location) and on the right as an r‑value (current value). The new value is computed from the old value and written back to the same location.
 
 Scope, shadowing, and lifetime
 Eligibility, total calculation, grade determination, and reporting are implemented in separate functions (checkEligibility, calculateTotal, determineGrade, printReport), satisfying modularity. In checkEligibility, the block‑local variable reason exists only within the if/else block. Attempting to access reason outside the block would cause an error, so the function copies reason into the output parameter failureReason before returning.
